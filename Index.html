@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Transcript Tool</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 15px; }
+        select, input, button, textarea { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
+        textarea { height: 140px; }
+    </style>
+</head>
+<body>
+    <h2>Video Transcript Tool</h2>
+
+    <label>1. Video / Audio ဖိုင် တင်ပါ:</label>
+    <input type="file" id="mediaInput" accept="video/*,audio/*">
+    <audio id="audioPlayer" controls style="display:none;"></audio>
+
+    <label>2. Language ရွေးပါ:</label>
+    <select id="languageSelect">
+        <option value="my-MM">Myanmar (မြန်မာ)</option>
+        <option value="ko-KR">Korea (ကိုရီးယား)</option>
+        <option value="th-TH">Thailand (ထိုင်း)</option>
+        <option value="en-US">English (အင်္ဂလိပ်)</option>
+        <option value="ja-JP">Japan (ဂျပန်)</option>
+    </select>
+
+    <button id="startBtn" onclick="startTranscription()">3. Start Process</button>
+
+    <label>4. စာတမ်း ထွက်လာမည့်နေရာ:</label>
+    <textarea id="resultText" placeholder="ဒီမှာ စာတမ်းထွက်လာမည်..."></textarea>
+
+    <button onclick="copyText()">5. Copy Text</button>
+
+    <script>
+        let recognition;
+        function startTranscription() {
+            const fileInput = document.getElementById('mediaInput');
+            const selectedLang = document.getElementById('languageSelect').value;
+            const resultText = document.getElementById('resultText');
+            const audioPlayer = document.getElementById('audioPlayer');
+
+            if (!fileInput.files[0]) {
+                alert("ကျေးဇူးပြု၍ Video ဖိုင် ရွေးပေးပါ");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            audioPlayer.src = URL.createObjectURL(file);
+            audioPlayer.play();
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Chrome Browser သုံးပေးပါ။");
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = selectedLang;
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            resultText.value = "Processing... အသံကို စာပြောင်းနေပါသည်။\n";
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                resultText.value = transcript;
+            };
+
+            recognition.start();
+        }
+
+        function copyText() {
+            const resultText = document.getElementById('resultText');
+            resultText.select();
+            navigator.clipboard.writeText(resultText.value);
+            alert("Copy ကူးပြီးပါပြီ!");
+        }
+    </script>
+</body>
+</html>
+
